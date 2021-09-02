@@ -26,6 +26,12 @@
                 android:orientation="vertical">
 
                 <Button
+                    android:id="@+id/btn_print_html_pdf"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jiwo Print HTML PDF"/>
+
+                <Button
                     android:id="@+id/btn_print_bitmap"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

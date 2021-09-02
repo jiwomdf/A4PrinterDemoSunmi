@@ -56,5 +56,10 @@
       <option name="name" value="D:\Android SDK\extras\m2repository" />
       <option name="url" value="file:/$PROJECT_DIR$/../../../Android%20SDK/extras/m2repository" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven3" />
+      <option name="name" value="maven3" />
+      <option name="url" value="https://customers.pspdfkit.com/maven/" />
+    </remote-repository>
   </component>
 </project>

@@ -1,20 +1,24 @@
 package com.sunmi.a4printerdemo;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.pdf.PdfDocument;
 import android.os.Environment;
+import android.print.PdfConverter;
+import android.print.PrintAttributes;
+import android.print.pdf.PrintedPdfDocument;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -24,6 +28,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextView tvPrinterStatus;
     private Button btnPrinterBitmap;
+    private Button btnPrintHtmlPdf;
     private Button btnPrinterFile;
     private Button btnPrinterText;
     private Button btnPrinterImage;
@@ -88,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void initView() {
         tvPrinterStatus = (TextView) findViewById(R.id.tv_printer_status);
         btnPrinterBitmap = (Button) findViewById(R.id.btn_print_bitmap);
+        btnPrintHtmlPdf = findViewById(R.id.btn_print_html_pdf);
         btnPrinterFile = (Button) findViewById(R.id.btn_printer_pdf);
         btnPrinterText = (Button) findViewById(R.id.btn_printer_text);
         btnPrinterImage = (Button) findViewById(R.id.btn_printer_image);
@@ -112,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     protected void initData(){
+        btnPrintHtmlPdf.setOnClickListener(this);
         btnPrinterBitmap.setOnClickListener(this);
         btnPrinterFile.setOnClickListener(this);
         btnPrinterText.setOnClickListener(this);
@@ -177,7 +188,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         switch (v.getId()){
+            case R.id.btn_print_html_pdf:
+
+                Log.e("JIWO", "onClick: JIWO" );
+                String filePath = Environment.getExternalStorageDirectory().toString() + "file.pdf";
+                File pdf = htmlToPdf();
+
+                String msg0 = mPrinter.printFile(filePath, false, false, this);
+                Toast.makeText(this, msg0, Toast.LENGTH_LONG).show();
+
+                break;
             case R.id.btn_print_bitmap:
+
+
                 append(strDate + ":" + btnPrinterFile.getText().toString() + "\r\n");
 
                 int A4_WIDTH_MAX = 4736;
@@ -188,8 +211,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, A4_WIDTH_MAX / 4, A4_HEIGHT_MAX / 4, true);
 
-                String msg0 = mPrinter.printBitmap(resizedBitmap, cbPrinterModeFile.isChecked());
-                Toast.makeText(this, msg0, Toast.LENGTH_LONG).show();
+                String msg99 = mPrinter.printBitmap(resizedBitmap, cbPrinterModeFile.isChecked());
+                Toast.makeText(this, msg99, Toast.LENGTH_LONG).show();
 
                 break;
             case R.id.btn_printer_pdf:
@@ -268,6 +291,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 break;
         }
+    }
+
+    private File htmlToPdf() {
+
+        createPDFFile();
+
+        PdfConverter converter = PdfConverter.getInstance();
+        File file = new File(Environment.getExternalStorageDirectory().toString(), "file.pdf");
+        String htmlString = "<html><body><p>WHITE (default)</p></body></html>";
+        converter.convert(this, htmlString, file);
+
+        File pdfFile = new File(Environment.getExternalStorageDirectory().toString(), "file.pdf");
+
+        return pdfFile;
+    }
+
+    private void createPDFFile() {
+
+        PrintAttributes printAttrs = new PrintAttributes.Builder().
+                setColorMode(PrintAttributes.COLOR_MODE_COLOR).
+                setMediaSize(PrintAttributes.MediaSize.NA_LETTER).
+                setResolution(new PrintAttributes.Resolution("zooey", PRINT_SERVICE, 300, 300)).
+                setMinMargins(PrintAttributes.Margins.NO_MARGINS).
+                build();
+
+
+        PrintedPdfDocument document = new PrintedPdfDocument(this,
+                printAttrs);
+
+        // start a page
+        PdfDocument.Page page = document.startPage(0);
+
+        // draw something on the page
+        /* View content = getContentView();
+        content.draw(page.getCanvas()); */
+
+        // finish the page
+        document.finishPage(page);
+
+        OutputStream os;
+
+        try {
+            File file = new File(Environment.getExternalStorageDirectory().toString(), "file.pdf");
+            os = new FileOutputStream(file);
+            document.writeTo(os);
+            document.close();
+            os.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating file", e);
+        }
+
     }
 
     @Override
